@@ -171,7 +171,7 @@ async def list_files(path: str):
         path (str): 目标目录的绝对路径 (必须在 output 目录下)。
     """
     # 1. [调试] 打印请求路径
-    print(f"[DEBUG] 请求文件列表: {path}")
+    logger.debug(f"请求文件列表: {path}")
 
     try:
         # 2. [解析] 获取绝对路径对象
@@ -180,11 +180,11 @@ async def list_files(path: str):
 
         # 3. [安全] 检查路径是否越界 (Path Traversal Check)
         if not abs_path.is_relative_to(output_abs):
-            print(f"[ERROR] 拒绝访问: {abs_path} 不在 {output_abs} 目录下")
+            logger.warning(f"拒绝访问: 路径越界 {abs_path}")
             return {"error": "拒绝访问: 只能访问输出目录下的文件"}
 
     except Exception as e:
-        print(f"[ERROR] 路径解析失败: {e}")
+        logger.error(f"路径解析失败: {e}")
         return {"error": f"路径无效: {e}"}
 
     # 4. [检查] 目录是否存在
@@ -208,7 +208,7 @@ async def list_files(path: str):
                 })
 
     except Exception as e:
-        print(f"[ERROR] 遍历文件失败: {e}")
+        logger.error(f"遍历文件失败: {e}")
         return {"error": str(e)}
 
     # 6. [排序] 按修改时间倒序排列 (最新的在前)
@@ -254,11 +254,11 @@ async def websocket_endpoint(websocket: WebSocket, thread_id: str):
     except WebSocketDisconnect:
         # 5. [清理] 客户端主动断开
         manager.disconnect(websocket, thread_id)
-        print(f"[WebSocket] 客户端已断开: {thread_id}")
+        logger.info(f"WebSocket 客户端已断开: {thread_id}")
 
     except Exception as e:
         # 6. [异常] 发生错误时断开
-        print(f"[WebSocket] 连接异常: {e}")
+        logger.error(f"WebSocket 连接异常: {e}", exc_info=True)
         manager.disconnect(websocket, thread_id)
 
 def start_server():

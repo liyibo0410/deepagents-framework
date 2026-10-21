@@ -126,7 +126,13 @@ def get_table_data(table_name: str) -> str:
     try:
         with connect(**get_db_config()) as conn:
             with conn.cursor() as cursor:
-                sql = f"select * from {table_name} limit 100;"
+                # 先校验表名是否存在，防止SQL注入
+                cursor.execute("SHOW TABLES")
+                valid_tables = [row[0] for row in cursor.fetchall()]
+                if table_name not in valid_tables:
+                    return f"表名 '{table_name}' 不存在，可用表: {', '.join(valid_tables)}"
+
+                sql = f"select * from `{table_name}` limit 100;"
                 cursor.execute(sql)
                 # 获取结果 [1.判断有没有数据 2. 获取表头  3. 获取表数据]
                 # description获取表的元数据 (表头)  1. 判断是不是有效表或者有数据  2. 获取表头信息

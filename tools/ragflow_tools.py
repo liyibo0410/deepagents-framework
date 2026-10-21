@@ -63,16 +63,18 @@ def create_ask_delete(chat_name:str,question:str) -> str:
         # ragflow  chat  datasets  session
         # 2. 向助手进行提问
         session = chat.create_session(name="temp_session")
-        stream = session.ask(question=question, stream=True)
-        final_result = ""
-        # 3. 获取结果数据
-        for chunk in  stream:
-            # 遍历的chunk本身就是累加的，所有取最后一个就可以了
-            final_result = chunk.content
-        # 4. 关闭助手会话
-        chat.delete_sessions([session.id])
-        # 5. 返回提问结果
-        return final_result
+        try:
+            stream = session.ask(question=question, stream=True)
+            final_result = ""
+            # 3. 获取结果数据
+            for chunk in stream:
+                # 遍历的chunk本身就是累加的，所有取最后一个就可以了
+                final_result = chunk.content
+            # 5. 返回提问结果
+            return final_result
+        finally:
+            # 4. 关闭助手会话（无论是否异常都要执行）
+            chat.delete_sessions([session.id])
     except Exception as e:
         return f"向{chat_name}提问失败：{str(e)}"
 
